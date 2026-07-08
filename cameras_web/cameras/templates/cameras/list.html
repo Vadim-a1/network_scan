@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система мониторинга камер</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body{
+            background:#f5f7fa;
+        }
+
+        .card{
+            border:none;
+            border-radius:15px;
+        }
+
+        .table{
+            background:white;
+            border-radius:15px;
+            overflow:hidden;
+        }
+
+        .navbar{
+            box-shadow:0 3px 10px rgba(0,0,0,.08);
+        }
+
+        .badge{
+            font-size:14px;
+        }
+
+        .btn{
+            border-radius:10px;
+        }
+
+        .table-hover tbody tr:hover{
+            background:#eef5ff;
+        }
+
+        .pagination .page-link{
+            color:#0d6efd;
+        }
+
+        .pagination .active .page-link{
+            background:#0d6efd;
+            border-color:#0d6efd;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+
+    <div class="container">
+
+        <span class="navbar-brand fs-3">
+            📹 Система мониторинга камер
+        </span>
+
+    </div>
+
+</nav>
+
+
+<div class="container mt-4">
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card shadow">
+
+                <div class="card-body text-center">
+
+                    <h5>Всего камер</h5>
+
+                    <h2>{{total_count}}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow border-success">
+
+                <div class="card-body text-center">
+
+                    <h5 class="text-success">
+                        🟢 Онлайн
+                    </h5>
+
+                    <h2 class="text-success">
+                        {{ online_count }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow border-danger">
+
+                <div class="card-body text-center">
+
+                    <h5 class="text-danger">
+                        🔴 Оффлайн
+                    </h5>
+
+                    <h2 class="text-danger">
+                        {{ offline_count }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="mb-4">
+
+        <a href="/admin/cameras/camera/add/" class="btn btn-success">
+            ➕ Добавить камеру
+        </a>
+        <a href="/admin/cameras/camera/" class="btn btn-danger">
+            🗑 Удалить камеру
+        </a>
+
+        
+
+    </div>
+
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-dark">
+                <tr>
+                    <th>№</th>
+                    <th>Название</th>
+                    <th>IP</th>
+                    <th>Метка</th>
+                    <th>Тип</th>
+                    <th>Модель</th>
+                    <th>Статус</th>
+                    <th>Ping</th>
+                    <th>Последняя проверка</th>
+                    <th>Последний OK</th>
+                    
+                </tr>
+                </thead>
+
+                {% for camera in cameras %}
+
+                <tr>
+
+                    <td>{{ forloop.counter }}</td>
+
+                    <td>{{ camera.name }}</td>
+
+                    <td>{{ camera.ip }}</td>
+
+                    <td>{{ camera.metka }}</td>
+
+                    <td>{{ camera.type }}</td>
+
+                    <td>{{ camera.model }}</td>
+
+                    <td>
+                        {% if camera.status == "online" %}
+                            <span class="badge bg-success">🟢 Online</span>
+                        {% else %}
+                            <span class="badge bg-danger">🔴 Offline</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ camera.ping }}</td>
+
+                    <td>{{ camera.last_check|date:"d.m.Y H:i:s" }}</td>
+
+                    <td>
+                        {% if camera.last_OK %}
+                            {{ camera.last_OK|date:"d.m.Y H:i:s" }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="11" class="text-center">
+                        Камеры отсутствуют
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <nav class="mt-4">
+
+        <ul class="pagination justify-content-center">
+
+            {% if cameras.has_previous %}
+
+                <li class="page-item">
+
+                    <a class="page-link"
+                       href="?page={{ cameras.previous_page_number }}">
+
+                        ← Предыдущая
+
+                    </a>
+
+                </li>
+
+            {% endif %}
+
+
+            {% for page in cameras.paginator.page_range %}
+
+                <li class="page-item {% if page == cameras.number %}active{% endif %}">
+
+                    <a class="page-link"
+                       href="?page={{ page }}">
+
+                        {{ page }}
+
+                    </a>
+
+                </li>
+
+            {% endfor %}
+
+
+            {% if cameras.has_next %}
+
+                <li class="page-item">
+
+                    <a class="page-link"
+                       href="?page={{ cameras.next_page_number }}">
+
+                        Следующая →
+
+                    </a>
+
+                </li>
+
+            {% endif %}
+
+        </ul>
+
+    </nav>
+
+</div>
+
+</body>
+
+</html>
