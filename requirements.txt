@@ -7,3 +7,4 @@ gunicorn==23.0.0
 whitenoise==6.9.0
 asgiref==3.9.1
 httpx==0.28.1
+psutil==7.0.0
