@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Центр управления</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(79, 70, 229, 0.35),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 85% 80%,
+                    rgba(14, 165, 233, 0.25),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #0f172a,
+                    #111827 55%,
+                    #172554
+                );
+
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 8px 15px;
+            margin-bottom: 18px;
+
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+
+            color: #c7d2fe;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+        }
+
+        .header h1 {
+            max-width: 850px;
+            margin: 0 auto;
+
+            font-size: clamp(36px, 7vw, 68px);
+            line-height: 1.05;
+            letter-spacing: -2px;
+        }
+
+        .header h1 span {
+            color: #818cf8;
+        }
+
+        .header p {
+            max-width: 650px;
+            margin: 22px auto 0;
+
+            color: #cbd5e1;
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            position: relative;
+            min-height: 340px;
+            overflow: hidden;
+
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 26px;
+
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+
+            display: flex;
+            flex-direction: column;
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .card.active:hover {
+            transform: translateY(-7px);
+            border-color: rgba(129, 140, 248, 0.7);
+            box-shadow: 0 30px 90px rgba(30, 64, 175, 0.28);
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            width: 170px;
+            height: 170px;
+            right: -65px;
+            top: -65px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.18);
+            filter: blur(4px);
+        }
+
+        .card.photos::after {
+            background: rgba(14, 165, 233, 0.16);
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 28px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 19px;
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+            box-shadow: 0 14px 35px rgba(79, 70, 229, 0.35);
+
+            font-size: 30px;
+        }
+
+        .photos .icon {
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+            box-shadow: 0 14px 35px rgba(14, 165, 233, 0.28);
+        }
+
+        .status {
+            position: absolute;
+            top: 28px;
+            right: 28px;
+
+            padding: 7px 12px;
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .status.online {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .status.soon {
+            color: #fde68a;
+            background: rgba(245, 158, 11, 0.13);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .card h2 {
+            margin-bottom: 13px;
+            font-size: 27px;
+            letter-spacing: -0.5px;
+        }
+
+        .card p {
+            color: #cbd5e1;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .button {
+            width: 100%;
+            margin-top: auto;
+            padding: 15px 20px;
+
+            border: 0;
+            border-radius: 14px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            text-decoration: none;
+            font: inherit;
+            font-weight: 800;
+
+            transition:
+                transform 0.2s ease,
+                filter 0.2s ease;
+        }
+
+        .button-primary {
+            color: white;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            box-shadow: 0 12px 30px rgba(79, 70, 229, 0.3);
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        .button-disabled {
+            color: #94a3b8;
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            cursor: not-allowed;
+        }
+
+        .footer {
+            margin-top: 34px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        @media (max-width: 760px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                margin-bottom: 30px;
+            }
+
+            .header h1 {
+                letter-spacing: -1px;
+            }
+
+            .card {
+                min-height: 310px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+
+        <header class="header">
+            <div class="eyebrow">Единый центр управления</div>
+
+            <h1>
+                Выберите нужный
+                <span>раздел системы</span>
+            </h1>
+
+            <p>
+                Здесь собраны инструменты мониторинга оборудования
+                и работы с загруженными фотографиями.
+            </p>
+        </header>
+
+        <section class="cards">
+
+            <!-- Карточка системы мониторинга -->
+            <article class="card active">
+
+                <span class="status online">Доступно</span>
+
+                <div class="icon">📹</div>
+
+                <h2>Мониторинг камер</h2>
+
+                <p>
+                    Просмотр камер, статусов Online и Offline,
+                    IP-адресов, результатов ping и времени последней проверки.
+                </p>
+
+                
+                <a
+                    class="button button-primary"
+                    href="/photos/"
+                >
+                    Открыть фотографии
+                    <span>→</span>
+                </a>
+
+            </article>
+
+            <!-- Карточка фотографий -->
+            <article class="card photos">
+
+                <span class="status soon">Список фотографий</span>
+
+                <div class="icon">🖼️</div>
+
+                <h2>Загруженные фотографии</h2>
+
+                <p>
+                    Раздел для просмотра, поиска и управления
+                    загруженными фотографиями сейчас находится в разработке.
+                </p>
+
+                <button
+                    class="button button-disabled"
+                    type="button"
+                    disabled
+                >
+                    Раздел ещё не готов
+                </button>
+
+            </article>
+
+        </section>
+
+        <footer class="footer">
+            Система управления и мониторинга оборудования
+        </footer>
+
+    </main>
+</body>
+</html>

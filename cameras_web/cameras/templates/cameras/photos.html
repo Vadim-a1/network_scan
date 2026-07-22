@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Загруженные фотографии</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            background: #f5f7fa;
+        }
+
+        .navbar {
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .photo-card {
+            height: 100%;
+            border: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            background: #e9ecef;
+        }
+
+        .telegram-id {
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+        <a
+            href="/"
+            class="navbar-brand"
+        >
+            🖼 Загруженные фотографии
+        </a>
+
+        <a
+            href="/cameras/"
+            class="btn btn-light btn-sm"
+        >
+            Перейти к камерам
+        </a>
+    </div>
+</nav>
+
+<main class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">
+                Фотографии из Telegram
+            </h1>
+
+            <div class="text-muted">
+                Всего загружено: {{ photos|length }}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4">
+
+        {% for photo in photos %}
+
+            <div class="col-12 col-md-6 col-xl-4">
+
+                <article class="card photo-card shadow-sm">
+
+                    <a
+                        href="{{ photo.image.url }}"
+                        target="_blank"
+                    >
+                        <img
+                            src="{{ photo.image.url }}"
+                            alt="Фото от пользователя {{ photo.telegram_id }}"
+                        >
+                    </a>
+
+                    <div class="card-body">
+
+                        <div class="fw-bold mb-2">
+                            Telegram ID:
+                            <span class="telegram-id">
+                                {{ photo.telegram_id }}
+                            </span>
+                        </div>
+
+                        {% if photo.telegram_username %}
+                            <div class="text-muted mb-2">
+                                Пользователь:
+                                @{{ photo.telegram_username }}
+                            </div>
+                        {% endif %}
+
+                        {% if photo.telegram_first_name %}
+                            <div class="text-muted mb-2">
+                                Имя:
+                                {{ photo.telegram_first_name }}
+                            </div>
+                        {% endif %}
+
+                        {% if photo.caption %}
+                            <div class="alert alert-light mt-3 mb-3">
+                                {{ photo.caption }}
+                            </div>
+                        {% endif %}
+
+                        <small class="text-muted">
+                            Загружено:
+                            {{ photo.uploaded_at|date:"d.m.Y H:i:s" }}
+                        </small>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        {% empty %}
+
+            <div class="col-12">
+
+                <div class="alert alert-secondary text-center py-5">
+
+                    <h2 class="h4">
+                        Фотографий пока нет
+                    </h2>
+
+                    <p class="mb-0">
+                        Отправьте фотографию Telegram-боту без команды.
+                    </p>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -24,9 +24,12 @@ from telegram.ext import (
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from cameras.models import Camera
+from cameras.models import Camera,TelegramPhoto
 from django.utils import timezone
+import tempfile
+from pathlib import Path
 
+from django.core.files import File
 
 TOKEN = "8906153567:AAGjV-QIWwXoz03ym6qnW6mljKZcbe2PL3c"
 
@@ -76,6 +79,33 @@ def get_camera_by_ip(ip):
 def get_all_cameras():
     return list(Camera.objects.all().order_by("id"))
 
+@sync_to_async
+def save_telegram_photo(
+    file_path: str,
+    telegram_id: int,
+    username: str,
+    first_name: str,
+    caption: str,
+):
+    photo = TelegramPhoto(
+        telegram_id=telegram_id,
+        telegram_username=username or "",
+        telegram_first_name=first_name or "",
+        caption=caption or "",
+    )
+
+    path = Path(file_path)
+
+    with path.open("rb") as source:
+        photo.image.save(
+            path.name,
+            File(source),
+            save=False,
+        )
+
+    photo.save()
+
+    return photo
 
 @sync_to_async
 def create_camera(ip, name):
@@ -254,7 +284,58 @@ async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Введите IP-адрес камеры:",
         reply_markup=keyboard,
     )
+@allowed_only
+async def handle_photo(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    message = update.effective_message
+    user = update.effective_user
 
+    if message is None or user is None or not message.photo:
+        return
+
+    # Последний вариант содержит фотографию наибольшего размера
+    telegram_photo = message.photo[-1]
+    telegram_file = await telegram_photo.get_file()
+
+    temp_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=".jpg",
+            delete=False,
+        ) as temp_file:
+            temp_path = temp_file.name
+
+        await telegram_file.download_to_drive(
+            custom_path=temp_path
+        )
+
+        saved_photo = await save_telegram_photo(
+            file_path=temp_path,
+            telegram_id=user.id,
+            username=user.username or "",
+            first_name=user.first_name or "",
+            caption=message.caption or "",
+        )
+
+        await message.reply_text(
+            "✅ Фотография загружена на сайт\n\n"
+            f"ID фотографии: {saved_photo.id}\n"
+            f"Telegram ID: {user.id}"
+        )
+
+    except Exception as error:
+        print(f"Ошибка загрузки фотографии: {error}")
+
+        await message.reply_text(
+            "❌ Не удалось загрузить фотографию."
+        )
+
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 @allowed_only
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -552,7 +633,16 @@ app = (
     .pool_timeout(60)
     .build()
 )
+app.add_handler(
+    MessageHandler(filters.PHOTO, handle_photo)
+)
 
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_text,
+    )
+)
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_command))
 app.add_handler(CommandHandler("ping", ping_command))
@@ -566,6 +656,15 @@ app.add_handler(CommandHandler("notify_status", notify_status))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
 app.add_error_handler(error_handler)
+app.add_handler(
+    MessageHandler(filters.PHOTO, handle_photo)
+)
 
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_text,
+    )
+)
 print("Бот запущен")
 app.run_polling()
